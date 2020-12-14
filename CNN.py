@@ -21,7 +21,7 @@ warnings.filterwarnings('ignore')
 train = pd.read_csv("train.csv")
 print(train.shape) # (42000, 785) - (image, column)
 
-#Tead Test 
+#Read Test 
 test= pd.read_csv("test.csv")
 print(test.shape) #(28000, 784) | 785-1 olması sebebi labelin olmaması
 #label = resimde yazan sayının tutulduğu kısım. Resimdeki sayı 3 se label 3 tür
@@ -61,6 +61,16 @@ print("test shape: ",test.shape) #(28000, 28, 28, 1)
 #9 => [0,0,1,0,0,0,0,0,0,1]
 from keras.utils.np_utils import to_categorical  #one-hot-encoding
 Y_train = to_categorical(Y_train, num_classes = 10)
+
+
+# Split Train and Validation
+# Traini 2 ye ayırdım. %90 train %10 validation. Val ile testleri yapıcam
+from sklearn.model_selection import train_test_split
+X_train, X_val, Y_train, Y_val = train_test_split(X_train, Y_train, test_size = 0.1, random_state=2) 
+print("x_train shape",X_train.shape) #(37800, 28, 28, 1)
+print("x_test shape",X_val.shape) #(4200, 28, 28, 1)
+print("y_train shape",Y_train.shape) #(37800, 10)
+print("y_test shape",Y_val.shape) #(4200, 10)
 
 
 
