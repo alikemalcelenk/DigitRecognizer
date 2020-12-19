@@ -62,7 +62,6 @@ print("test shape: ",test.shape) #(28000, 28, 28, 1)
 from keras.utils.np_utils import to_categorical  #one-hot-encoding
 Y_train = to_categorical(Y_train, num_classes = 10)
 
-
 # Split Train and Validation
 # Traini 2 ye ayırdım. %90 train %10 validation. Val ile testleri yapıcam
 from sklearn.model_selection import train_test_split
@@ -71,6 +70,79 @@ print("x_train shape",X_train.shape) #(37800, 28, 28, 1)
 print("x_test shape",X_val.shape) #(4200, 28, 28, 1)
 print("y_train shape",Y_train.shape) #(37800, 10)
 print("y_test shape",Y_val.shape) #(4200, 10)
+
+from sklearn.metrics import confusion_matrix
+import itertools
+
+from keras.utils.np_utils import to_categorical # convert to one-hot-encoding
+from keras.models import Sequential
+from keras.layers import Dense, Dropout, Flatten, Conv2D, MaxPool2D
+from keras.optimizers import RMSprop,Adam
+from keras.preprocessing.image import ImageDataGenerator
+from keras.callbacks import ReduceLROnPlateau
+
+
+#CNN MODEL
+#conv => max pool => dropout =>     conv => max pool => dropout =>       fully connected (2 layer)
+
+model = Sequential() #modeli oluşturduk.
+
+#1
+model.add(Conv2D(filters = 8, kernel_size = (5,5),padding = 'Same', activation ='relu', input_shape = (28,28,1)))
+#filters = feature detectors
+#kernel_size = filter length 
+#keras için 28x28x1 matrixine çevirdik. 1 = gray scale
+model.add(MaxPool2D(pool_size=(2,2)))
+model.add(Dropout(0.25))
+
+#2
+model.add(Conv2D(filters = 16, kernel_size = (3,3),padding = 'Same', activation ='relu'))
+#üstte verdiğimiz için artık burada input_shapei vermemize gerek yok
+model.add(MaxPool2D(pool_size=(2,2), strides=(2,2)))
+#stride = 2 şer basamak atlıycaz
+model.add(Dropout(0.25))
+
+# fully connected
+model.add(Flatten())
+#Flatten -> matrixi düzleştirme işlemi. ANN için 
+model.add(Dense(256, activation = "relu"))
+model.add(Dropout(0.5))
+model.add(Dense(10, activation = "softmax")) #output
+#layerlar eklendi. activation functionlar relu ve softmax
+
+#Adam Optimizer - change learning rate
+optimizer = Adam(lr=0.001, beta_1=0.9, beta_2=0.999)
+
+#Compiler
+#loss functionı categorical_crossentropy ile buluyoruz. Eğer yanlış predict ederse loss yüksek, doğru predict ederse loss 0.
+model.compile(optimizer = optimizer , loss = "categorical_crossentropy", metrics=["accuracy"])
+
+#Epoch and Batch Size
+epochs = 10  
+batchSize = 250
+
+#Data Augmentation
+datagen = ImageDataGenerator( #!!hyperparameters
+        featurewise_center=False,  # set input mean to 0 over the dataset
+        samplewise_center=False,  # set each sample mean to 0
+        featurewise_std_normalization=False,  # divide inputs by std of the dataset
+        samplewise_std_normalization=False,  # divide each input by its std
+        zca_whitening=False,  # dimesion reduction
+        rotation_range=5,  #!randomly rotate images in the range 5 degrees
+        zoom_range = 0.1, #!Randomly zoom image 10%
+        width_shift_range=0.1,  #!randomly shift images horizontally 10%
+        height_shift_range=0.1,  #!randomly shift images vertically 10%
+        horizontal_flip=False,  # randomly flip images
+        vertical_flip=False)  # randomly flip images
+
+datagen.fit(X_train)
+
+
+# Fit the model
+history = model.fit_generator(datagen.flow(X_train,Y_train, batch_size=batchSize), epochs = epochs, validation_data = (X_val,Y_val), steps_per_epoch=X_train.shape[0] // batchSize)
+
+
+
 
 
 
