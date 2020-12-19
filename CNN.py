@@ -137,10 +137,34 @@ datagen = ImageDataGenerator( #!!hyperparameters
 
 datagen.fit(X_train)
 
-
 # Fit the model
 history = model.fit_generator(datagen.flow(X_train,Y_train, batch_size=batchSize), epochs = epochs, validation_data = (X_val,Y_val), steps_per_epoch=X_train.shape[0] // batchSize)
 
+# Evaluate the model
+plt.plot(history.history['val_loss'], color='b', label="validation loss")
+plt.title("Test Loss")
+plt.xlabel("Number of Epochs")
+plt.ylabel("Loss")
+plt.legend()
+plt.show()
+
+# confusion matrix
+import seaborn as sns
+# Predict the values from the validation dataset
+Y_pred = model.predict(X_val)
+# Convert predictions classes to one hot vectors 
+Y_pred_classes = np.argmax(Y_pred,axis = 1) 
+# Convert validation observations to one hot vectors
+Y_true = np.argmax(Y_val,axis = 1) 
+# compute the confusion matrix
+confusion_mtx = confusion_matrix(Y_true, Y_pred_classes) 
+# plot the confusion matrix
+f,ax = plt.subplots(figsize=(8, 8))
+sns.heatmap(confusion_mtx, annot=True, linewidths=0.01,cmap="Greens",linecolor="gray", fmt= '.1f',ax=ax)
+plt.xlabel("Predicted Label")
+plt.ylabel("True Label")
+plt.title("Confusion Matrix")
+plt.show()
 
 
 
